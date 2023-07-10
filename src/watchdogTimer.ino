@@ -1,18 +1,41 @@
-/*
- * Project watchdogTimer
- * Description:
- * Author:
- * Date:
- */
+#define watchdogPetButton D8
 
-// setup() runs once, when the device is first turned on.
+#include "oled-wing-adafruit.h"
+
+SYSTEM_MODE(MANUAL);
+SYSTEM_THREAD(ENABLED);
+
+OledWingAdafruit display;
+
 void setup() {
-  // Put initialization like pinMode and begin functions here.
+  Watchdog.init(WatchdogConfiguration().timeout(5000));
+  Watchdog.start();
 
+  display.setup();
+  resetDisplay();
+
+  if (System.resetReason() == RESET_REASON_WATCHDOG) {
+    display.print(RESET_REASON_WATCHDOG);
+  } else {
+    display.print("Normal Reset");
+  }
+
+  display.display();
+
+  pinMode(watchdogPetButton, INPUT);
 }
 
-// loop() runs over and over again, as quickly as it can execute.
 void loop() {
-  // The core of your code will likely live here.
+  display.loop();
 
+  if (digitalRead(watchdogPetButton)) {
+    Watchdog.refresh();
+  }
+}
+
+void resetDisplay() {
+  display.clearDisplay();
+  display.setTextSize(1);
+	display.setTextColor(WHITE);
+	display.setCursor(0,0);
 }
